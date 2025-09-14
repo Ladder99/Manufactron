@@ -1,3 +1,15 @@
 appsettings.json
 /bin
 /obj
+/Manufactron.Client/bin
+/Manufactron.Client/obj
+/Manufactron.I3X.Aggregator/bin
+/Manufactron.I3X.Aggregator/obj
+/Manufactron.I3X.ERP/bin
+/Manufactron.I3X.ERP/obj
+/Manufactron.I3X.MES/bin
+/Manufactron.I3X.MES/obj
+/Manufactron.I3X.SCADA/bin
+/Manufactron.I3X.SCADA/obj
+/Manufactron.I3X.Shared/bin
+/Manufactron.I3X.Shared/obj

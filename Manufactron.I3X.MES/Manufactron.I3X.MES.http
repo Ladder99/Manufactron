@@ -1,0 +1,6 @@
+@Manufactron.I3X.MES_HostAddress = http://localhost:5139
+
+GET {{Manufactron.I3X.MES_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
