@@ -215,11 +215,12 @@ public class I3XAggregatorController : ControllerBase
         };
 
         // Check each service
+        var i3xConfig = HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetSection("I3XServices");
         var serviceUrls = new Dictionary<string, string>
         {
-            ["ERP"] = "http://localhost:7001",
-            ["MES"] = "http://localhost:7002",
-            ["SCADA"] = "http://localhost:7003"
+            ["ERP"] = i3xConfig["ERP"] ?? "http://localhost:7001",
+            ["MES"] = i3xConfig["MES"] ?? "http://localhost:7002",
+            ["SCADA"] = i3xConfig["SCADA"] ?? "http://localhost:7003"
         };
 
         using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };

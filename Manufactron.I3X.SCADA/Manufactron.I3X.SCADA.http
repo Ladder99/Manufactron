@@ -1,6 +1,0 @@
-@Manufactron.I3X.SCADA_HostAddress = http://localhost:5251
-
-GET {{Manufactron.I3X.SCADA_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

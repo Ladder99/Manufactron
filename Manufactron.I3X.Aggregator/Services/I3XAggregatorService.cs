@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Manufactron.I3X.Shared.Models;
 using Manufactron.I3X.Shared.Models.Manufacturing;
 
@@ -12,18 +13,18 @@ public class I3XAggregatorService
     private readonly ILogger<I3XAggregatorService> _logger;
     private readonly Dictionary<string, string> _serviceUrls;
 
-    public I3XAggregatorService(HttpClient httpClient, ILogger<I3XAggregatorService> logger)
+    public I3XAggregatorService(HttpClient httpClient, ILogger<I3XAggregatorService> logger, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _logger = logger;
 
-        // Configure service URLs
-        _serviceUrls = new Dictionary<string, string>
-        {
-            ["ERP"] = "http://localhost:7001",
-            ["MES"] = "http://localhost:7002",
-            ["SCADA"] = "http://localhost:7003"
-        };
+        // Load service URLs from configuration
+        _serviceUrls = new Dictionary<string, string>();
+        var i3xConfig = configuration.GetSection("I3XServices");
+
+        _serviceUrls["ERP"] = i3xConfig["ERP"] ?? "http://localhost:7001";
+        _serviceUrls["MES"] = i3xConfig["MES"] ?? "http://localhost:7002";
+        _serviceUrls["SCADA"] = i3xConfig["SCADA"] ?? "http://localhost:7003";
     }
 
     public async Task<List<Namespace>> GetNamespacesAsync()
@@ -359,11 +360,19 @@ public class I3XAggregatorService
             context.Job = instance;
             await BuildContextFromJob(context, elementId);
         }
+        else if (instance.TypeId?.Contains("production-line") == true)
+        {
+            context.Line = instance;
+            await BuildContextFromLine(context, elementId);
+        }
         else if (instance.TypeId?.Contains("equipment") == true)
         {
             context.Equipment = instance;
             await BuildContextFromEquipment(context, elementId);
         }
+
+        // Aggregate all relationships from all entities in the context
+        AggregateAllRelationships(context);
 
         return context;
     }
@@ -437,6 +446,67 @@ public class I3XAggregatorService
         }
     }
 
+    private async Task BuildContextFromLine(ManufacturingContext context, string lineId)
+    {
+        // Get current job from line attributes
+        var currentJob = context.Line?.Attributes?.GetValueOrDefault("currentJob")?.ToString();
+        if (!string.IsNullOrEmpty(currentJob))
+        {
+            context.Job = await GetObjectAsync(currentJob, true);
+
+            // Get order from job
+            if (context.Job?.Relationships?.TryGetValue("ForOrder", out var orderIds) == true && orderIds?.Count > 0)
+            {
+                context.Order = await GetObjectAsync(orderIds[0], true);
+            }
+
+            // Get operator from job
+            if (context.Job?.Relationships?.TryGetValue("ProducedBy", out var operatorIds) == true && operatorIds?.Count > 0)
+            {
+                context.Operator = await GetObjectAsync(operatorIds[0], true);
+            }
+
+            // Get material batch from job
+            if (context.Job?.Relationships?.TryGetValue("ConsumedMaterial", out var batchIds) == true && batchIds?.Count > 0)
+            {
+                context.MaterialBatch = await GetObjectAsync(batchIds[0], true);
+            }
+        }
+
+        // Get equipment from line's children - check relationships first
+        if (context.Line?.Relationships?.TryGetValue("HasChildren", out var equipmentIds) == true && equipmentIds?.Count > 0)
+        {
+            // Fetch the first equipment (prioritize filler for the scenario)
+            var fillerId = equipmentIds.FirstOrDefault(id => id.Contains("filler", StringComparison.OrdinalIgnoreCase))
+                          ?? equipmentIds[0];
+            context.Equipment = await GetObjectAsync(fillerId, true);
+
+            // Get all other equipment as upstream equipment
+            var otherEquipment = new List<Instance>();
+            foreach (var eqId in equipmentIds.Where(id => id != fillerId))
+            {
+                var eq = await GetObjectAsync(eqId, true);
+                if (eq != null)
+                    otherEquipment.Add(eq);
+            }
+            context.UpstreamEquipment = otherEquipment;
+        }
+        else
+        {
+            // Fallback: try getting children through the children endpoint
+            var equipment = await GetChildrenAsync(lineId, true);
+            if (equipment?.Count > 0)
+            {
+                // Prioritize filler equipment if present, otherwise take first
+                context.Equipment = equipment.FirstOrDefault(e => e.ElementId?.Contains("filler", StringComparison.OrdinalIgnoreCase) == true)
+                                   ?? equipment[0];
+
+                // Get all equipment as collection
+                context.UpstreamEquipment = equipment.Where(e => e.ElementId != context.Equipment?.ElementId).ToList();
+            }
+        }
+    }
+
     private async Task BuildContextFromEquipment(ManufacturingContext context, string equipmentId)
     {
         // Get parent line from SCADA
@@ -449,6 +519,28 @@ public class I3XAggregatorService
             if (!string.IsNullOrEmpty(currentJob))
             {
                 context.Job = await GetObjectAsync(currentJob, true);
+
+                // Build full context from the job
+                if (context.Job != null)
+                {
+                    // Get order from job's relationships
+                    if (context.Job.Relationships?.TryGetValue("ForOrder", out var orderIds) == true && orderIds?.Count > 0)
+                    {
+                        context.Order = await GetObjectAsync(orderIds[0], true);
+                    }
+
+                    // Get operator from job's relationships
+                    if (context.Job.Relationships?.TryGetValue("ProducedBy", out var operatorIds) == true && operatorIds?.Count > 0)
+                    {
+                        context.Operator = await GetObjectAsync(operatorIds[0], true);
+                    }
+
+                    // Get material batch from job's relationships
+                    if (context.Job.Relationships?.TryGetValue("ConsumedMaterial", out var batchIds) == true && batchIds?.Count > 0)
+                    {
+                        context.MaterialBatch = await GetObjectAsync(batchIds[0], true);
+                    }
+                }
             }
         }
 
@@ -458,6 +550,192 @@ public class I3XAggregatorService
 
         var downstreamEquipment = await GetRelationshipsAsync(equipmentId, "DownstreamTo");
         context.DownstreamEquipment = downstreamEquipment ?? new List<Instance>();
+    }
+
+    private void AggregateAllRelationships(ManufacturingContext context)
+    {
+        // Collect all relationships from all entities in the context
+        var allRelationships = new Dictionary<string, List<Relationship>>();
+
+        // Add relationships from Equipment
+        if (context.Equipment?.Relationships != null)
+        {
+            foreach (var rel in context.Equipment.Relationships)
+            {
+                if (!allRelationships.ContainsKey(rel.Key))
+                    allRelationships[rel.Key] = new List<Relationship>();
+
+                foreach (var targetId in rel.Value)
+                {
+                    allRelationships[rel.Key].Add(new Relationship
+                    {
+                        SubjectId = context.Equipment.ElementId,
+                        PredicateType = rel.Key,
+                        ObjectId = targetId
+                    });
+                }
+            }
+        }
+
+        // Add relationships from Line
+        if (context.Line?.Relationships != null)
+        {
+            foreach (var rel in context.Line.Relationships)
+            {
+                if (!allRelationships.ContainsKey(rel.Key))
+                    allRelationships[rel.Key] = new List<Relationship>();
+
+                foreach (var targetId in rel.Value)
+                {
+                    allRelationships[rel.Key].Add(new Relationship
+                    {
+                        SubjectId = context.Line.ElementId,
+                        PredicateType = rel.Key,
+                        ObjectId = targetId
+                    });
+                }
+            }
+        }
+
+        // Add relationships from Job
+        if (context.Job?.Relationships != null)
+        {
+            foreach (var rel in context.Job.Relationships)
+            {
+                if (!allRelationships.ContainsKey(rel.Key))
+                    allRelationships[rel.Key] = new List<Relationship>();
+
+                foreach (var targetId in rel.Value)
+                {
+                    allRelationships[rel.Key].Add(new Relationship
+                    {
+                        SubjectId = context.Job.ElementId,
+                        PredicateType = rel.Key,
+                        ObjectId = targetId
+                    });
+                }
+            }
+        }
+
+        // Add relationships from Order
+        if (context.Order?.Relationships != null)
+        {
+            foreach (var rel in context.Order.Relationships)
+            {
+                if (!allRelationships.ContainsKey(rel.Key))
+                    allRelationships[rel.Key] = new List<Relationship>();
+
+                foreach (var targetId in rel.Value)
+                {
+                    allRelationships[rel.Key].Add(new Relationship
+                    {
+                        SubjectId = context.Order.ElementId,
+                        PredicateType = rel.Key,
+                        ObjectId = targetId
+                    });
+                }
+            }
+        }
+
+        // Add relationships from MaterialBatch
+        if (context.MaterialBatch?.Relationships != null)
+        {
+            foreach (var rel in context.MaterialBatch.Relationships)
+            {
+                if (!allRelationships.ContainsKey(rel.Key))
+                    allRelationships[rel.Key] = new List<Relationship>();
+
+                foreach (var targetId in rel.Value)
+                {
+                    allRelationships[rel.Key].Add(new Relationship
+                    {
+                        SubjectId = context.MaterialBatch.ElementId,
+                        PredicateType = rel.Key,
+                        ObjectId = targetId
+                    });
+                }
+            }
+        }
+
+        // Add relationships from Operator
+        if (context.Operator?.Relationships != null)
+        {
+            foreach (var rel in context.Operator.Relationships)
+            {
+                if (!allRelationships.ContainsKey(rel.Key))
+                    allRelationships[rel.Key] = new List<Relationship>();
+
+                foreach (var targetId in rel.Value)
+                {
+                    allRelationships[rel.Key].Add(new Relationship
+                    {
+                        SubjectId = context.Operator.ElementId,
+                        PredicateType = rel.Key,
+                        ObjectId = targetId
+                    });
+                }
+            }
+        }
+
+        // Add relationships from upstream equipment
+        foreach (var equipment in context.UpstreamEquipment ?? new List<Instance>())
+        {
+            if (equipment?.Relationships != null)
+            {
+                foreach (var rel in equipment.Relationships)
+                {
+                    if (!allRelationships.ContainsKey(rel.Key))
+                        allRelationships[rel.Key] = new List<Relationship>();
+
+                    foreach (var targetId in rel.Value)
+                    {
+                        // Avoid duplicates
+                        if (!allRelationships[rel.Key].Any(r =>
+                            r.SubjectId == equipment.ElementId &&
+                            r.ObjectId == targetId))
+                        {
+                            allRelationships[rel.Key].Add(new Relationship
+                            {
+                                SubjectId = equipment.ElementId,
+                                PredicateType = rel.Key,
+                                ObjectId = targetId
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add relationships from downstream equipment
+        foreach (var equipment in context.DownstreamEquipment ?? new List<Instance>())
+        {
+            if (equipment?.Relationships != null)
+            {
+                foreach (var rel in equipment.Relationships)
+                {
+                    if (!allRelationships.ContainsKey(rel.Key))
+                        allRelationships[rel.Key] = new List<Relationship>();
+
+                    foreach (var targetId in rel.Value)
+                    {
+                        // Avoid duplicates
+                        if (!allRelationships[rel.Key].Any(r =>
+                            r.SubjectId == equipment.ElementId &&
+                            r.ObjectId == targetId))
+                        {
+                            allRelationships[rel.Key].Add(new Relationship
+                            {
+                                SubjectId = equipment.ElementId,
+                                PredicateType = rel.Key,
+                                ObjectId = targetId
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        context.AllRelationships = allRelationships;
     }
 
     // Helper methods

@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Manufactron.I3X.Shared.Interfaces;
 using Manufactron.I3X.Shared.Models;
-using Manufactron.I3X.Shared.Models.Manufacturing;
 
 namespace Manufactron.I3X.SCADA.Data
 {
