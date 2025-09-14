@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Memory;
 #pragma warning disable SKEXP0001
@@ -113,7 +114,8 @@ async Task RunInteractiveDemo(ManufacturingAgent agent, Kernel kernel, ILogger l
         Console.WriteLine("5. Generate Optimization Recommendations");
         Console.WriteLine("6. Ask Manufacturing Question");
         Console.WriteLine("7. Simulate Manufacturing Event");
-        Console.WriteLine("8. Exit");
+        Console.WriteLine("8. Natural Language Chat (with Function Calling)");
+        Console.WriteLine("9. Exit");
         Console.Write("\nSelect option: ");
 
         var choice = Console.ReadLine();
@@ -144,6 +146,9 @@ async Task RunInteractiveDemo(ManufacturingAgent agent, Kernel kernel, ILogger l
                     await SimulateEvent(orchestrator);
                     break;
                 case "8":
+                    await NaturalLanguageChat(kernel);
+                    break;
+                case "9":
                     Console.WriteLine("\nShutting down Manufacturing Agent System...");
                     return;
                 default:
@@ -394,6 +399,76 @@ async Task SimulateEvent(ManufacturingOrchestrator orchestrator)
     foreach (var kvp in systemStatus)
     {
         Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
+    }
+}
+
+async Task NaturalLanguageChat(Kernel kernel)
+{
+    Console.WriteLine("\n🤖 Natural Language Chat with Function Calling");
+    Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    Console.WriteLine("You can now chat naturally with the AI. It will automatically");
+    Console.WriteLine("invoke the appropriate functions based on your request.");
+    Console.WriteLine("\nExamples:");
+    Console.WriteLine("• \"Schedule preventive maintenance for equipment EQUIP-001 next week\"");
+    Console.WriteLine("• \"Check the production status of LINE-001\"");
+    Console.WriteLine("• \"Analyze quality for batch BATCH-123\"");
+    Console.WriteLine("\nType 'exit' to return to the main menu.\n");
+
+    // Get the chat completion service
+    var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+    // Create chat history to maintain conversation context
+    var chatHistory = new ChatHistory();
+    chatHistory.AddSystemMessage("You are a manufacturing assistant that helps schedule maintenance, check production status, and analyze quality metrics. Use the available functions to fulfill user requests.");
+
+    // Configure OpenAI to automatically invoke kernel functions
+    var settings = new OpenAIPromptExecutionSettings
+    {
+        ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
+        Temperature = 0.7,
+        MaxTokens = 500
+    };
+
+    while (true)
+    {
+        Console.Write("\nYou: ");
+        var userInput = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(userInput) || userInput.ToLower() == "exit")
+        {
+            Console.WriteLine("Returning to main menu...");
+            break;
+        }
+
+        // Add user message to history
+        chatHistory.AddUserMessage(userInput);
+
+        try
+        {
+            Console.Write("\nAI: ");
+
+            // Get response from chat completion service with full history
+            var result = await chatCompletionService.GetChatMessageContentAsync(
+                chatHistory,
+                settings,
+                kernel
+            );
+
+            var response = result.Content ?? "I couldn't generate a response.";
+            Console.WriteLine(response);
+
+            // Add assistant response to history for continuity
+            chatHistory.AddAssistantMessage(response);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("Please try rephrasing your request.");
+
+            // Remove the last user message if there was an error
+            if (chatHistory.Count > 0)
+                chatHistory.RemoveAt(chatHistory.Count - 1);
+        }
     }
 }
 

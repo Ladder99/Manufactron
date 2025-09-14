@@ -14,7 +14,9 @@
       "Bash(dotnet restore:*)",
       "Bash(dotnet build:*)",
       "mcp__serena__find_symbol",
-      "mcp__serena__search_for_pattern"
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__list_memories",
+      "mcp__serena__read_memory"
     ]
   },
   "enableAllProjectMcpServers": true,
