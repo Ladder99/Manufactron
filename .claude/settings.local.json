@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__activate_project",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__onboarding",
+      "mcp__serena__list_dir",
+      "mcp__serena__write_memory",
+      "Bash(dotnet add package:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet run:*)",
+      "mcp__serena__find_file",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet build:*)",
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "serena"
+  ]
+}
