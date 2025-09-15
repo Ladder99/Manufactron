@@ -202,7 +202,7 @@ class Program
         var includeMetadata = AnsiConsole.Confirm("Include metadata?", false);
 
         await AnsiConsole.Status()
-            .StartAsync("Fetching objects...", async ctx =>
+            .StartAsync("Fetching...", async ctx =>
             {
                 var response = await httpClient.GetAsync($"{aggregatorUrl}/api/i3x/objects?includeMetadata={includeMetadata}");
                 if (response.IsSuccessStatusCode)
@@ -217,14 +217,19 @@ class Program
 
                         foreach (var group in grouped)
                         {
-                            AnsiConsole.MarkupLine($"\n[bold yellow]{group.Key}[/]");
+                            AnsiConsole.MarkupLine($"\n[bold yellow]{group.Key}           [/]");
 
                             var table = new Table();
                             table.AddColumn("ID");
                             table.AddColumn("Name");
+
                             if (includeMetadata)
                             {
-                                table.AddColumn("Attributes");
+                                // Add I3X required metadata columns
+                                table.AddColumn("ParentId");
+                                table.AddColumn("HasChildren");
+                                table.AddColumn("NamespaceUri");
+                                table.AddColumn("Other Attributes");
                                 table.AddColumn("Relationships");
                             }
 
@@ -234,9 +239,22 @@ class Program
 
                                 if (includeMetadata)
                                 {
-                                    var attrs = obj.Attributes != null ? string.Join(", ", obj.Attributes.Keys.Take(3)) : "";
+                                    // Add I3X required metadata values
+                                    row.Add(obj.ParentId ?? "");
+                                    row.Add(obj.HasChildren.ToString());
+                                    row.Add(obj.NamespaceUri ?? "");
+
+                                    // Add all other attributes
+                                    var otherAttrs = "";
+                                    if (obj.Attributes != null && obj.Attributes.Any())
+                                    {
+                                        var attrs = obj.Attributes.Select(kvp => $"{kvp.Key}={kvp.Value}");
+                                        otherAttrs = string.Join(", ", attrs);
+                                    }
+                                    row.Add(otherAttrs);
+
+                                    // Add relationships
                                     var rels = obj.Relationships != null ? string.Join(", ", obj.Relationships.Keys.Take(3)) : "";
-                                    row.Add(attrs);
                                     row.Add(rels);
                                 }
 
@@ -726,6 +744,8 @@ class Program
 [bold]ID:[/] {obj.ElementId}
 [bold]Name:[/] {obj.Name ?? "N/A"}
 [bold]Type:[/] {obj.TypeId ?? "N/A"}
+[bold]ParentId:[/] {obj.ParentId ?? "N/A"}
+[bold]HasChildren:[/] {obj.HasChildren}
 [bold]Namespace:[/] {obj.NamespaceUri ?? "N/A"}"))
         {
             Header = new PanelHeader($"[cyan]{obj.Name ?? obj.ElementId}[/]"),
@@ -860,4 +880,5 @@ class Program
             AnsiConsole.Write(relTree);
         }
     }
+
 }
