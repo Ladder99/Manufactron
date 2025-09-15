@@ -43,12 +43,21 @@ Write-Host "To test the aggregator health:" -ForegroundColor Cyan
 Write-Host "  curl http://localhost:7000/api/i3x/health"
 Write-Host ""
 
-# Optionally start the Manufactron Client
-$response = Read-Host "Do you want to start the Manufactron Client? (Y/N)"
+# Optionally start the Exploratory Client
+$response = Read-Host "Do you want to start the I3X Exploratory Client? (Y/N)"
 if ($response -eq 'Y' -or $response -eq 'y') {
-    Write-Host "Starting Manufactron Client..." -ForegroundColor Yellow
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '.\Manufactron.Client'; dotnet run"
-    Write-Host "Manufactron Client started!" -ForegroundColor Green
+    Write-Host "Starting I3X Exploratory Client..." -ForegroundColor Cyan
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", @"
+        cd '.\Manufactron.ExploratoryClient'
+        Write-Host '============================================' -ForegroundColor Cyan
+        Write-Host ' I3X Exploratory Client' -ForegroundColor Cyan
+        Write-Host ' Interactive Manufacturing Intelligence Explorer' -ForegroundColor White
+        Write-Host ' Connected to: http://localhost:7000' -ForegroundColor Gray
+        Write-Host '============================================' -ForegroundColor Cyan
+        Write-Host ''
+        dotnet run
+"@
+    Write-Host "I3X Exploratory Client started!" -ForegroundColor Green
 }
 
 Write-Host ""

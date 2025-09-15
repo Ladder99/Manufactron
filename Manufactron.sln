@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Manufactron.Client", "Manuf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Manufactron.I3X.Aggregator", "Manufactron.I3X.Aggregator\Manufactron.I3X.Aggregator.csproj", "{92AB5DBA-2F6B-4115-B2D2-1CC5A269E369}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Manufactron.ExploratoryClient", "Manufactron.ExploratoryClient\Manufactron.ExploratoryClient.csproj", "{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,6 +96,18 @@ Global
 		{92AB5DBA-2F6B-4115-B2D2-1CC5A269E369}.Release|x64.Build.0 = Release|Any CPU
 		{92AB5DBA-2F6B-4115-B2D2-1CC5A269E369}.Release|x86.ActiveCfg = Release|Any CPU
 		{92AB5DBA-2F6B-4115-B2D2-1CC5A269E369}.Release|x86.Build.0 = Release|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Debug|x64.Build.0 = Debug|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Debug|x86.Build.0 = Debug|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Release|x64.ActiveCfg = Release|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Release|x64.Build.0 = Release|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Release|x86.ActiveCfg = Release|Any CPU
+		{F24EF2A8-7116-4E6B-A479-DBF2A83C2AA3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

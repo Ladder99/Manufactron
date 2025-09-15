@@ -13,3 +13,5 @@ appsettings.json
 /Manufactron.I3X.SCADA/obj
 /Manufactron.I3X.Shared/bin
 /Manufactron.I3X.Shared/obj
+/Manufactron.ExploratoryClient/bin
+/Manufactron.ExploratoryClient/obj

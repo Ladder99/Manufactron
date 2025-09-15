@@ -21,8 +21,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Register the aggregator service
+// Add memory cache for graph discovery
+builder.Services.AddMemoryCache();
+
+// Register I3X services with proper dependency injection to avoid circular dependency
 builder.Services.AddHttpClient<I3XAggregatorService>();
+builder.Services.AddScoped<II3XDataAccess>(provider => provider.GetRequiredService<I3XAggregatorService>());
+builder.Services.AddScoped<GraphDiscoveryService>();
+builder.Services.AddScoped<ContextBuilderService>();
 
 // Configure CORS to allow any origin (for development)
 builder.Services.AddCors(options =>

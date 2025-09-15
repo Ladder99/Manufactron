@@ -1,738 +1,297 @@
-# Manufactron - AI-Powered Manufacturing Intelligence System
+# Manufactron - I3X Manufacturing Intelligence Platform
 
-An advanced agentic framework for manufacturing built with .NET and Microsoft Semantic Kernel, powered by OpenAI GPT-4. This system provides autonomous monitoring, analysis, and optimization of manufacturing processes with sophisticated mock data generation for testing and demonstration.
+A comprehensive manufacturing intelligence platform implementing the **I3X (Industrial Internet Information eXchange)** standard for unified data access across enterprise systems.
 
-## Features
+## 🏗️ Architecture Overview
 
-### Core Capabilities
-- **Production Monitoring**: Real-time tracking of production lines, OEE calculation, and performance metrics
-- **Quality Control**: Automated quality analysis, defect detection, and improvement recommendations
-- **Predictive Maintenance**: ML-based failure prediction, MTBF calculation, and maintenance scheduling
-- **Anomaly Detection**: Real-time sensor data analysis and anomaly identification
-- **Intelligent Planning**: AI-powered production planning and optimization
-- **Memory System**: Knowledge base with incident history and best practices
-- **System Integration**: Connectors for ERP, MES, SCADA, and IoT platforms
-
-### Agent Architecture
-- **Manufacturing Agent**: Core agent for processing queries and scenarios
-- **Domain Plugins**: Specialized plugins for production, quality, and maintenance
-- **Orchestrator**: Multi-agent coordination for complex events
-- **Memory Store**: Semantic memory for knowledge retention and retrieval
-
-## Prerequisites
-
-- .NET 9.0 SDK or later
-- OpenAI API key
-- Visual Studio 2022 or VS Code (optional)
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/manufactron.git
-cd manufactron
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Exploratory Client                         │
+│              (Interactive Console Interface)                 │
+└───────────────────────┬─────────────────────────────────────┘
+                        │ HTTP/REST
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  I3X Aggregator Service                      │
+│                     (Port: 7000)                             │
+│  • Dynamic Graph Discovery                                   │
+│  • Context Building                                          │
+│  • Unified API                                               │
+└──────┬──────────────────┬──────────────────┬────────────────┘
+       │                  │                  │
+       ▼                  ▼                  ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│ ERP Service  │  │ MES Service  │  │ SCADA Service│
+│ (Port: 7001) │  │ (Port: 7002) │  │ (Port: 7003) │
+└──────────────┘  └──────────────┘  └──────────────┘
 ```
 
-2. Configure your OpenAI API key in `appsettings.json`:
+## 🚀 Quick Start
+
+### Prerequisites
+- .NET 9.0 SDK
+- Windows PowerShell (for automated startup)
+
+### Start All Services
+
+```powershell
+# From the solution root directory
+.\Start-AllServices.ps1
+```
+
+This will:
+1. Start all four I3X services (Aggregator, ERP, MES, SCADA) in separate windows
+2. Prompt to launch the Interactive Exploratory Client
+3. Display all service URLs and endpoints
+
+## 🔍 I3X Exploratory Client
+
+The **Exploratory Client** is an interactive console application that provides visual exploration of the manufacturing intelligence graph through the aggregator service.
+
+### Features
+
+#### Interactive Menu System
+- **📊 Discover Namespaces** - View all available namespaces across ERP, MES, and SCADA services
+- **🏭 Browse Object Types** - Explore hierarchical view of all object types in the system
+- **📦 List All Objects** - Display all instances grouped by their type
+- **🔍 Search for Object** - Find objects by ID, name, or type with partial matching
+- **🌐 Build Manufacturing Context** - Construct complete manufacturing context from any entity
+- **📈 Visualize Object Graph** - Tree visualization showing relationships and hierarchy
+- **🔗 Explore Relationships** - Navigate and understand object relationships
+- **📜 View Object History** - Display historical data with configurable time ranges
+- **🎯 Interactive Object Navigator** - Navigate through the graph interactively
+
+### How to Use the Exploratory Client
+
+1. **Launch the Client**
+   - Run `Start-AllServices.ps1` and select 'Y' when prompted for the Exploratory Client
+   - Or manually: `cd Manufactron.ExploratoryClient && dotnet run`
+
+2. **Navigation**
+   - Use arrow keys to navigate menu options
+   - Press Enter to select
+   - Follow on-screen prompts for input
+
+3. **Example Workflows**
+
+   **Exploring Manufacturing Context:**
+   ```
+   1. Select "🔍 Search for Object"
+   2. Enter search term: "filler"
+   3. Note the element ID (e.g., "scada-equipment-filler-1")
+   4. Select "🌐 Build Manufacturing Context"
+   5. Enter the element ID
+   6. View complete context including Equipment, Line, Job, Order, Material, and Operator
+   ```
+
+   **Interactive Navigation:**
+   ```
+   1. Select "🎯 Interactive Object Navigator"
+   2. Enter starting element: "scada-line-1"
+   3. Navigate to children, parent, or follow relationships
+   4. Build context or visualize graph at any point
+   ```
+
+### Configuration
+
+The client reads its configuration from `appsettings.json`:
+
 ```json
 {
-  "OpenAI": {
-    "ApiKey": "your-openai-api-key-here",
-    "ModelId": "gpt-4-turbo-preview",
-    "EmbeddingModelId": "text-embedding-ada-002"
+  "AggregatorService": {
+    "BaseUrl": "http://localhost:7000"
   }
 }
 ```
 
-Or set the environment variable:
-```bash
-set OPENAI_API_KEY=your-openai-api-key
-```
+## 🔄 I3X Aggregator Service
 
-3. Restore packages:
-```bash
-dotnet restore
-```
+The Aggregator Service is the heart of the system, providing unified access to all manufacturing data sources.
 
-## 📊 Quick Start Guide
+### Key Features
 
-Run the application:
-```bash
-dotnet run
-```
+#### Dynamic Graph Discovery
+- Automatically discovers the manufacturing system structure
+- Builds a comprehensive graph of all objects and relationships
+- Caches the graph for 30 minutes for performance
+- No hardcoded types or relationships
 
-The system will start with an interactive menu:
+#### Intelligent Context Building
+- Constructs complete manufacturing context from ANY starting entity
+- Uses graph traversal algorithms (BFS/DFS) to find related entities
+- Pattern matching for automatic type recognition
+- Handles complex multi-hop relationships
 
-```
-═══ Manufacturing Agent Menu ═══
-1. Check Production Status
-2. Analyze Quality Metrics
-3. Predict Maintenance Needs
-4. Detect Anomalies
-5. Generate Optimization Recommendations
-6. Ask Manufacturing Question
-7. Simulate Manufacturing Event
-8. Exit
-```
+#### Unified API Endpoints
 
-## 📖 User Guide and Walkthrough
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/i3x/namespaces` | Get all namespaces from all services |
+| `GET /api/i3x/types` | Get all object types |
+| `GET /api/i3x/objects` | Get all objects (with optional metadata) |
+| `GET /api/i3x/objects/{id}` | Get specific object |
+| `GET /api/i3x/objects/{id}/parent` | Get parent object |
+| `GET /api/i3x/objects/{id}/children` | Get child objects |
+| `GET /api/i3x/objects/{id}/relationships/{type}` | Get related objects |
+| `GET /api/i3x/context/{id}` | Build complete manufacturing context |
+| `GET /api/i3x/history/{id}` | Get historical values |
+| `GET /api/i3x/values/{id}` | Get current values |
+| `POST /api/i3x/values/{id}` | Update values |
 
-### 1️⃣ Check Production Status
-Monitor real-time production line status with OEE calculations.
+### How the Aggregator Works
 
-**Example Session:**
-```
-Select option: 1
-Enter Line ID (e.g., LINE-001): LINE-001
+1. **Service Discovery**
+   - Queries all three services (ERP, MES, SCADA) for their capabilities
+   - Merges namespaces and types into unified view
 
-📊 Production Status for LINE-001:
-  • Line: LINE-001
-  • Status: Running
-  • Throughput: 850 units/hour
-  • Efficiency: 92%
-  • Last Updated: 14:23:45
-  • Metrics:
-    - Temperature: 72.5°C
-    - Pressure: 145 PSI
-    - Speed: 1200 RPM
-    - UpTime: 0.92
+2. **Graph Construction**
+   - Fetches all objects from all services
+   - Builds nodes from objects with attributes
+   - Creates edges from relationships
+   - Maintains bidirectional adjacency lists
 
-📈 OEE Metrics (8 hours):
-  • Overall OEE: 82.3%
-```
+3. **Context Building Process**
+   ```
+   Starting Entity → Graph Discovery → Path Finding → Context Population
+   ```
+   - Identifies entity type through pattern matching
+   - Traverses graph to find related entities (Order, Job, Line, Equipment, etc.)
+   - Uses relationship semantics (ForOrder, ExecutedOn, HasChildren, etc.)
+   - Aggregates all relationships across entities
 
-### 2️⃣ Analyze Quality Metrics
-Perform comprehensive quality analysis on production batches.
+## 📊 Data Services
 
-**Example Session:**
-```
-Select option: 2
-Enter Batch ID (e.g., BATCH-001): BATCH-001
+### ERP Service (Port: 7001)
+Manages enterprise-level data:
+- **Orders** - Customer orders with products and quantities
+- **Customers** - Customer information and relationships
+- **Products** - Product definitions and specifications
 
-🔍 Quality Analysis for BATCH-001:
-  • Batch: BATCH-001
-  • Quality Score: 95%
-  • Status: ✅ PASSED
-  • Inspection Date: 2024-01-15 10:30
-  • Quality Metrics:
-    - Dimension Accuracy: 0.98 (Target: 0.95, ✓)
-    - Surface Finish: 0.92 (Target: 0.90, ✓)
-    - Weight Variance: 0.03 (Target: 0.05, ✓)
-```
+### MES Service (Port: 7002)
+Handles production execution:
+- **Jobs** - Production jobs with planned quantities and schedules
+- **Operators** - Worker assignments and shifts
+- **Material Batches** - Raw material tracking
 
-### 3️⃣ Predict Maintenance Needs
-Leverage AI to predict equipment failures and maintenance requirements.
+### SCADA Service (Port: 7003)
+Controls equipment and lines:
+- **Production Lines** - Line status and performance (OEE)
+- **Equipment** - Mixers, Fillers, Cappers with real-time status
+- **Sensors** - Temperature, pressure, flow rate monitoring
 
-**Example Session:**
-```
-Select option: 3
-Enter Equipment ID (e.g., EQUIP-001): EQUIP-001
+## 🔧 Development
 
-🔧 Maintenance Prediction for EQUIP-001:
-  • Equipment: EQUIP-001
-  • Equipment Name: CNC Machine Alpha
-  • Failure Probability: 75%
-  • Predicted Failure: 2024-01-25
-  • Recommended Action: Schedule preventive maintenance
-  • Estimated Downtime: 4.5 hours
-  • Estimated Cost: $2,500
-  • Risk Factors:
-    - Bearing wear detected
-    - Vibration levels increasing
-
-📊 MTBF Metrics (365 days):
-  • Mean Time Between Failures: 720.5 hours
-```
-
-### 4️⃣ Detect Anomalies
-Real-time anomaly detection in sensor data.
-
-**Example Session:**
-```
-Select option: 4
-
-🎯 Analyzing sensor data: Temperature = 88.5 °C
-
-📊 Anomaly Detection Result:
-  • Status: ⚠️ ANOMALY DETECTED
-  • Type: Temperature Excursion
-  • Confidence: 92%
-  • Description: Detected Temperature Excursion in sensor SENSOR-001
-  • Affected Metrics: Temperature
-```
-
-### 5️⃣ Generate Optimization Recommendations
-AI-powered production optimization using OpenAI GPT-4.
-
-**Example Session:**
-```
-Select option: 5
-
-🤖 Generating optimization recommendations...
-
-Based on analysis of production scenario:
-
-1. **Optimize Changeover Process**
-   - Current: 45 minutes average
-   - Target: 20 minutes using SMED
-   - Impact: 5% efficiency gain
-
-2. **Adjust Temperature Settings**
-   - Issue: High variance causing defects
-   - Solution: Tighten control to 75°C ± 2°C
-   - Impact: 15% defect reduction
-
-3. **Preventive Maintenance Schedule**
-   - Risk: Equipment EQUIP-003 wear patterns
-   - Action: Schedule during next downtime
-   - Benefit: Prevent 8 hours unplanned downtime
-```
-
-### 6️⃣ Ask Manufacturing Question
-Natural language interface powered by OpenAI for manufacturing expertise.
-
-**Example Session:**
-```
-Select option: 6
-Enter your question: What are best practices for reducing defects in injection molding?
-
-🤖 Manufacturing Agent Response:
-
-Best practices for reducing injection molding defects:
-
-1. **Material Preparation**
-   - Proper drying of hygroscopic materials
-   - Consistent material temperature
-   - Optimal regrind ratios
-
-2. **Process Optimization**
-   - Optimize injection speed/pressure profiles
-   - Maintain proper mold temperature
-   - Ensure adequate cooling time
-
-3. **Mold Maintenance**
-   - Regular cleaning and inspection
-   - Proper venting to prevent gas traps
-   - Maintain runner and gate dimensions
-```
-
-## 🏭 Technical Architecture
-
-### System Overview with OpenAI Integration
-
-```mermaid
-graph TB
-    subgraph "User Interface"
-        UI[Console Application]
-    end
-
-    subgraph "Core Application"
-        MA[Manufacturing Agent]
-        SK[Semantic Kernel]
-        PM[Plugin Manager]
-    end
-
-    subgraph "AI Services"
-        OAI[OpenAI GPT-4]
-        EMB[Ada Embeddings]
-        MEM[Semantic Memory]
-    end
-
-    subgraph "Plugins"
-        PMP[Production Monitoring]
-        QCP[Quality Control]
-        PRP[Predictive Maintenance]
-    end
-
-    subgraph "Data Layer"
-        MD[Mock Data Service]
-        IS[Integration Service]
-        MM[Manufacturing Memory]
-    end
-
-    UI --> MA
-    MA --> SK
-    SK --> PM
-    PM --> PMP
-    PM --> QCP
-    PM --> PRP
-
-    SK -.->|API Calls| OAI
-    SK -.->|Embeddings| EMB
-    EMB -.->|Vectors| MEM
-
-    PMP --> IS
-    QCP --> IS
-    PRP --> IS
-
-    IS --> MD
-    MA --> MM
-    MM --> MEM
-
-    style OAI fill:#10a37f
-    style EMB fill:#10a37f
-    style MD fill:#ff6b6b
-```
-
-### OpenAI Integration Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Agent as Manufacturing Agent
-    participant SK as Semantic Kernel
-    participant OpenAI as OpenAI GPT-4
-    participant Plugins
-    participant Mock as Mock Data
-
-    User->>Agent: Ask Question/Command
-    Agent->>SK: Process Query
-
-    alt Natural Language Query
-        SK->>OpenAI: Send Prompt + Context
-        Note over OpenAI: GPT-4 Processing
-        OpenAI-->>SK: AI Response
-        SK->>Plugins: Invoke Functions
-        Plugins->>Mock: Get Mock Data
-        Mock-->>Plugins: Return Simulated Data
-        Plugins-->>SK: Function Results
-        SK->>OpenAI: Process with Results
-        OpenAI-->>SK: Final Response
-    else Structured Command
-        SK->>Plugins: Direct Invocation
-        Plugins->>Mock: Get Mock Data
-        Mock-->>Plugins: Return Data
-        Plugins-->>SK: Results
-    end
-
-    SK-->>Agent: Formatted Response
-    Agent-->>User: Display Results
-```
-
-### Mock Data Generation Pipeline
-
-```mermaid
-graph LR
-    subgraph "Mock Data Generation"
-        RNG[Random Generator]
-        TPL[Data Templates]
-        SIM[Scenario Simulator]
-    end
-
-    subgraph "Data Processing"
-        VAL[Validators]
-        CALC[Calculators]
-        AGG[Aggregators]
-    end
-
-    subgraph "AI Enhancement"
-        CTX[Context Builder]
-        PRO[Prompt Engine]
-        RES[Response Parser]
-    end
-
-    RNG --> VAL
-    TPL --> VAL
-    SIM --> VAL
-
-    VAL --> CALC
-    CALC --> AGG
-
-    AGG --> CTX
-    CTX --> PRO
-    PRO -->|OpenAI API| GPT[GPT-4]
-    GPT -->|JSON Response| RES
-
-    style GPT fill:#10a37f
-    style RNG fill:#ff6b6b
-    style TPL fill:#ff6b6b
-    style SIM fill:#ff6b6b
-```
-
-## Architecture
-
+### Project Structure
 ```
 Manufactron/
-├── Agents/              # Core agent implementations
-├── Plugins/             # Semantic Kernel plugins
-│   ├── ProductionMonitoringPlugin.cs
-│   ├── QualityControlPlugin.cs
-│   └── MaintenancePlugin.cs
-├── Models/              # Data models and DTOs
-├── Memory/              # Memory and context management
-├── Planning/            # Planning and orchestration
-├── Integration/         # External system integrations
-├── Configuration/       # Configuration files
-└── Program.cs           # Main entry point
+├── Manufactron.I3X.Shared/          # Shared models and interfaces
+├── Manufactron.I3X.ERP/             # ERP service implementation
+├── Manufactron.I3X.MES/             # MES service implementation
+├── Manufactron.I3X.SCADA/           # SCADA service implementation
+├── Manufactron.I3X.Aggregator/      # Aggregator service with graph discovery
+│   ├── Services/
+│   │   ├── I3XAggregatorService.cs  # Main aggregation logic
+│   │   ├── GraphDiscoveryService.cs # Dynamic graph discovery
+│   │   └── ContextBuilderService.cs # Context building with graph traversal
+│   └── Models/
+│       └── GraphModels.cs           # Graph structures
+├── Manufactron.ExploratoryClient/   # Interactive console client
+└── Manufactron.Client/              # Basic client implementation
 ```
 
-## 🔄 Mock Data System
+### Building from Source
 
-### Mock Data Generation Strategy
-
-The system uses sophisticated mock data generation to simulate realistic manufacturing scenarios:
-
-```csharp
-// Production Status Mock Data
-public ProductionStatus GenerateMockStatus(string lineId)
-{
-    return new ProductionStatus
-    {
-        LineId = lineId,
-        Status = RandomChoice("Running", "Idle", "Maintenance"),
-        Throughput = 800 + Random(-100, 100),
-        Efficiency = 0.85 + Random(0.0, 0.1),
-        Metrics = new Dictionary<string, object>
-        {
-            ["Temperature"] = 72.5 + Random(-5, 5),
-            ["Pressure"] = 145 + Random(-10, 10),
-            ["Speed"] = 1200 + Random(-100, 100),
-            ["UpTime"] = 0.92 + Random(0.0, 0.05)
-        }
-    };
-}
-```
-
-### Sensor Data Simulation
-
-```mermaid
-graph TD
-    subgraph "Sensor Simulation Pipeline"
-        BASE[Base Value]
-        NOISE[Random Noise]
-        TREND[Trend Component]
-        ANOM[Anomaly Injection]
-    end
-
-    BASE --> ADD[Additive Model]
-    NOISE --> ADD
-    TREND --> ADD
-    ANOM --> ADD
-
-    ADD --> VALIDATE[Range Validation]
-    VALIDATE --> OUTPUT[Sensor Reading]
-
-    OUTPUT --> THRESH{Threshold Check}
-    THRESH -->|Normal| STORE1[Store Normal]
-    THRESH -->|Anomaly| STORE2[Flag & Store Anomaly]
-
-    style ANOM fill:#ff6b6b
-    style STORE2 fill:#ff6b6b
-```
-
-### Mock Scenario Examples
-
-```csharp
-// Equipment Failure Simulation
-var failure = new EquipmentFailure
-{
-    EquipmentId = "PUMP-001",
-    FailureType = "Bearing Failure",
-    Severity = "Critical",
-    PredictedDowntime = 4.5,
-    Impact = new[] { "LINE-001", "LINE-002" }
-};
-
-// Quality Deviation Simulation
-var qualityIssue = new QualityDeviation
-{
-    BatchId = "BATCH-789",
-    DefectRate = 0.08,  // 8% defect rate
-    RootCause = "Temperature variance",
-    AffectedUnits = 150
-};
-
-// Anomaly Injection
-var anomaly = new SensorAnomaly
-{
-    SensorId = "TEMP-003",
-    Type = "Temperature Spike",
-    Value = 95.5,  // Above threshold of 85
-    Duration = TimeSpan.FromMinutes(5)
-};
-```
-
-## 🤖 OpenAI Integration Details
-
-### Prompt Engineering Examples
-
-```csharp
-// Optimization Recommendations Prompt
-[KernelFunction]
-public async Task<string> GenerateOptimizations(
-    ManufacturingScenario scenario)
-{
-    var prompt = @"
-    You are a manufacturing optimization expert.
-    Analyze the following production data:
-    - Line: {{$scenario.LineId}}
-    - Efficiency: {{$scenario.Efficiency}}%
-    - OEE: {{$scenario.OEE}}%
-    - Recent Issues: {{$scenario.Issues}}
-
-    Provide 3 specific, actionable recommendations to improve
-    production efficiency. Include estimated impact and
-    implementation complexity for each.
-    ";
-
-    return await kernel.InvokePromptAsync(prompt,
-        new() { ["scenario"] = scenario });
-}
-```
-
-### Function Calling with OpenAI
-
-```csharp
-[KernelFunction, Description("Analyze manufacturing scenario")]
-public async Task<AnalysisResult> AnalyzeScenario(
-    [Description("Manufacturing scenario")] ManufacturingScenario scenario)
-{
-    // OpenAI function calling automatically handles parameter marshalling
-    var result = await kernel.InvokePromptAsync<AnalysisResult>(
-        @"Analyze this manufacturing scenario and identify:
-        1. Key performance issues
-        2. Root causes
-        3. Improvement opportunities
-        4. Risk factors
-
-        Scenario: {{$json}}",
-        new() { ["json"] = JsonSerializer.Serialize(scenario) }
-    );
-
-    return result;
-}
-```
-
-### Semantic Memory Integration
-
-```mermaid
-graph TD
-    subgraph "Knowledge Storage"
-        PROC[Manufacturing Procedures]
-        HIST[Incident History]
-        BEST[Best Practices]
-    end
-
-    subgraph "Embedding Process"
-        TEXT[Text Input]
-        EMB[OpenAI Ada Embeddings]
-        VEC[Vector Storage]
-    end
-
-    subgraph "Retrieval Process"
-        QUERY[User Query]
-        EMBED2[Query Embedding]
-        SEARCH[Semantic Search]
-        CONTEXT[Context Building]
-    end
-
-    PROC --> TEXT
-    HIST --> TEXT
-    BEST --> TEXT
-
-    TEXT --> EMB
-    EMB --> VEC
-
-    QUERY --> EMBED2
-    EMBED2 --> SEARCH
-    VEC --> SEARCH
-    SEARCH --> CONTEXT
-    CONTEXT --> RESPONSE[AI Response]
-
-    style EMB fill:#10a37f
-    style EMBED2 fill:#10a37f
-```
-
-## Key Components
-
-### Plugins
-
-#### Production Monitoring Plugin
-- `GetProductionStatus`: Real-time production line monitoring
-- `DetectAnomalies`: Sensor data anomaly detection
-- `CalculateOEE`: Overall Equipment Effectiveness calculation
-- `GetSensorReadings`: Real-time sensor data retrieval
-
-#### Quality Control Plugin
-- `AnalyzeQuality`: Batch quality analysis
-- `PredictQualityIssues`: Quality prediction based on parameters
-- `GenerateQualityRecommendations`: Quality improvement suggestions
-- `CalculateFirstPassYield`: FPY calculation
-
-#### Maintenance Plugin
-- `PredictMaintenance`: Predictive maintenance using ML
-- `ScheduleMaintenance`: Maintenance task scheduling
-- `CalculateMTBF`: Mean Time Between Failures
-- `GetMaintenanceHistory`: Historical maintenance records
-- `OptimizeMaintenanceCosts`: Cost optimization recommendations
-
-### Integration Points
-
-The system is designed to integrate with:
-- **ERP Systems**: Inventory and production order management
-- **MES (Manufacturing Execution Systems)**: Real-time production data
-- **SCADA Systems**: Sensor data and control
-- **IoT Platforms**: Device telemetry and commands
-
-Currently, the system operates with simulated data but can be easily connected to real systems by updating the `SystemIntegrationService`.
-
-## Configuration
-
-Edit `appsettings.json` to configure:
-
-```json
-{
-  "Manufacturing": {
-    "MonitoringInterval": "00:05:00",
-    "AlertThresholds": {
-      "Temperature": 85.0,
-      "Pressure": 150.0,
-      "QualityScore": 0.95
-    },
-    "SystemIntegration": {
-      "ERPEndpoint": "https://your-erp-system.com/api",
-      "MESEndpoint": "https://your-mes-system.com/api",
-      "SCADAEndpoint": "https://your-scada-system.com/api"
-    }
-  }
-}
-```
-
-## Extending the System
-
-### Adding New Plugins
-
-Create a new plugin class with Semantic Kernel functions:
-
-```csharp
-public class CustomPlugin
-{
-    [KernelFunction, Description("Your function description")]
-    public async Task<Result> YourFunction(
-        [Description("Parameter description")] string parameter)
-    {
-        // Implementation
-    }
-}
-```
-
-Register in `Program.cs`:
-```csharp
-kernel.ImportPluginFromType<CustomPlugin>("CustomPlugin");
-```
-
-### Adding New Agents
-
-Implement the `IManufacturingAgent` interface:
-
-```csharp
-public class CustomAgent : IManufacturingAgent
-{
-    public string AgentType => "Custom";
-
-    public async Task<object> ProcessEvent(ManufacturingEvent evt)
-    {
-        // Process manufacturing event
-    }
-}
-```
-
-## 📡 OpenAI API Configuration
-
-### Token Usage and Costs
-
-```json
-{
-  "OpenAI": {
-    "ApiKey": "sk-...",
-    "ModelId": "gpt-4",
-    "EmbeddingModelId": "text-embedding-ada-002",
-    "MaxTokens": 2000,
-    "Temperature": 0.7,
-    "TopP": 0.95
-  }
-}
-```
-
-### Performance Metrics
-
-- **Response Time**: 1-3 seconds for OpenAI calls
-- **Token Usage**: Average 500-1500 tokens per request
-- **Embedding Dimensions**: 1536 (Ada-002)
-- **Context Window**: 8,192 tokens (GPT-4)
-- **Concurrent Requests**: Up to 10 parallel calls
-
-## 🧪 Testing with Mock Data
-
-### Mock Data Modes
-
-1. **Deterministic Mode**: Seeded random for reproducible tests
-```csharp
-var mockService = new MockDataService(seed: 12345);
-```
-
-2. **Anomaly Mode**: Inject failures and issues
-```csharp
-mockService.EnableAnomalyMode(rate: 0.1); // 10% anomaly rate
-```
-
-3. **Stress Mode**: High-volume data generation
-```csharp
-mockService.EnableStressMode(eventsPerSecond: 1000);
-```
-
-## Development
-
-### Building
 ```bash
+# Build all projects
 dotnet build
+
+# Run individual services
+cd Manufactron.I3X.Aggregator && dotnet run
+cd Manufactron.I3X.ERP && dotnet run
+cd Manufactron.I3X.MES && dotnet run
+cd Manufactron.I3X.SCADA && dotnet run
+
+# Run the exploratory client
+cd Manufactron.ExploratoryClient && dotnet run
 ```
 
-### Running Tests
-```bash
-dotnet test
-```
+## 🎯 Key Concepts
 
-### Publishing
-```bash
-dotnet publish -c Release
-```
+### Manufacturing Context
+A complete view of the manufacturing state including:
+- **Equipment** - The primary equipment involved
+- **Line** - The production line
+- **Job** - Current production job
+- **Order** - Customer order being fulfilled
+- **Material Batch** - Raw materials being used
+- **Operator** - Worker operating the equipment
+- **All Relationships** - Complete relationship graph
 
-## Deployment Considerations
+### Graph-Based Discovery
+The system uses advanced graph algorithms to:
+- Discover system topology without configuration
+- Find shortest paths between entities
+- Build context from any starting point
+- Handle complex multi-service relationships
 
-For production deployment:
+### Pattern Recognition
+Intelligent type detection through:
+- Type ID patterns (e.g., "equipment-type", "order-type")
+- Element ID patterns (e.g., "scada-equipment-mixer")
+- Attribute analysis (e.g., presence of "customerId" indicates Order)
+- Relationship semantics (e.g., "ForOrder", "ExecutedOn")
 
-1. **Containerization**: Deploy as Docker containers in Kubernetes
-2. **Message Queuing**: Use Azure Service Bus or RabbitMQ for agent communication
-3. **Observability**: Implement comprehensive logging and monitoring
-4. **Security**: Ensure proper authentication and authorization
-5. **Scalability**: Design for horizontal scaling of agent instances
-6. **Reliability**: Implement circuit breakers and retry policies
+## 📝 Example Scenarios
 
-## Security Notes
+### Scenario 1: Equipment Failure Investigation
+1. Start from equipment showing error
+2. Build context to see current job, order, and operator
+3. Check material batch quality certificate
+4. View historical sensor data
+5. Navigate to upstream/downstream equipment
 
-- Never commit API keys to source control
-- Use Azure Key Vault or similar for production secrets
-- Implement proper authentication for system integrations
-- Ensure data encryption in transit and at rest
+### Scenario 2: Order Status Tracking
+1. Search for order by customer name
+2. Build context to see associated jobs
+3. Navigate to production lines executing jobs
+4. Check equipment status and OEE
+5. View operator assignments
 
-## Contributing
+### Scenario 3: Quality Issue Root Cause
+1. Start from quality alert
+2. Navigate to material batch
+3. Check supplier and certificate
+4. Find all jobs using the batch
+5. Identify affected equipment and lines
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+## 🔒 Security Considerations
 
-## License
+- Services run on localhost only by default
+- No authentication implemented (development version)
+- CORS enabled for development
+- Production deployment requires:
+  - Authentication/authorization
+  - HTTPS endpoints
+  - Network security
+  - Access control
 
-MIT License - See LICENSE file for details
+## 📄 License
 
-## Support
+This is a demonstration implementation of the I3X standard for educational purposes.
 
-For issues and questions, please open an issue on GitHub.
+## 🤝 Contributing
 
-## Acknowledgments
+This project demonstrates I3X implementation patterns. For production use:
+1. Add authentication and authorization
+2. Implement data persistence
+3. Add error handling and retry logic
+4. Configure for your specific equipment and systems
+5. Add monitoring and logging
 
-- Built with [Microsoft Semantic Kernel](https://github.com/microsoft/semantic-kernel)
-- Powered by [OpenAI](https://openai.com/)
-- Inspired by Industry 4.0 and smart manufacturing principles
+## 📧 Support
+
+For questions about the I3X standard and implementation patterns, refer to the industrial standards documentation.
+
+---
+
+*Built with .NET 9.0 and the I3X Industrial Standard*
