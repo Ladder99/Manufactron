@@ -34,7 +34,8 @@
       "mcp__serena__insert_before_symbol",
       "Bash(dotnet add:*)",
       "mcp__serena__find_referencing_symbols",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(Remove-Item \"C:\\source\\ladder101\\Manufactron\\Manufactron.Client\\Planning\\I3XManufacturingOrchestrator.cs\" -Force)"
     ]
   },
   "enableAllProjectMcpServers": true,

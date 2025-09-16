@@ -1,0 +1,43 @@
+You are optimizing a production schedule. Analyze the current state and provide optimization recommendations.
+
+Current State:
+- Production Lines: {{$lines}}
+- Active Jobs: {{$jobs}}
+- Equipment Status: {{$equipment}}
+- Material Availability: {{$materials}}
+- Order Priority: {{$orders}}
+
+Constraints:
+- Available Hours: {{$availableHours}}
+- Changeover Times: {{$changeoverTimes}}
+- Quality Requirements: {{$qualityRequirements}}
+- Maintenance Windows: {{$maintenanceWindows}}
+
+Optimization Goals:
+1. Maximize OEE (Overall Equipment Effectiveness)
+2. Minimize changeover time
+3. Meet delivery deadlines
+4. Balance workload across lines
+5. Reduce waste and rework
+
+Analysis Steps:
+1. Identify bottlenecks in current schedule
+2. Calculate optimal job sequencing
+3. Determine best line assignments
+4. Account for maintenance requirements
+5. Buffer for potential disruptions
+
+Output Format:
+OPTIMIZED SCHEDULE:
+[Time] | [Line] | [Job] | [Product] | [Quantity] | [Duration]
+
+KEY IMPROVEMENTS:
+- OEE Improvement: [%]
+- Changeover Reduction: [hours]
+- Delivery Performance: [%]
+
+CRITICAL PATH:
+[List critical operations that cannot be delayed]
+
+RISK MITIGATION:
+[Identify and address potential risks]

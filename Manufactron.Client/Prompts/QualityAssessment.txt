@@ -1,0 +1,55 @@
+You are performing a quality assessment for manufacturing operations. Analyze the data and identify quality issues and improvement opportunities.
+
+Quality Data:
+- Product: {{$product}}
+- Batch Information: {{$batch}}
+- Test Results: {{$testResults}}
+- Defect Rates: {{$defectRates}}
+- Customer Complaints: {{$complaints}}
+
+Statistical Analysis:
+- Mean: {{$mean}}
+- Standard Deviation: {{$stdDev}}
+- Cp/Cpk: {{$processCapability}}
+- Control Limits: {{$controlLimits}}
+
+Context:
+- Equipment Used: {{$equipment}}
+- Operator: {{$operator}}
+- Environmental Conditions: {{$environment}}
+- Material Source: {{$materialSource}}
+
+Assessment Criteria:
+1. Identify quality trends and patterns
+2. Detect out-of-specification conditions
+3. Correlate defects with root causes
+4. Assess process capability
+5. Evaluate compliance with standards
+
+Output Format:
+QUALITY STATUS: [Pass/Warning/Fail]
+
+KEY FINDINGS:
+1. [Most significant quality issue]
+2. [Secondary quality concern]
+3. [Potential risk area]
+
+STATISTICAL SUMMARY:
+- Defect Rate: [%]
+- Process Capability: [Cp/Cpk values]
+- Trend: [Improving/Stable/Degrading]
+
+ROOT CAUSE ANALYSIS:
+- Primary Factor: [Main cause of quality issues]
+- Contributing Factors: [List of secondary causes]
+
+CORRECTIVE ACTIONS:
+IMMEDIATE:
+- [Action 1]
+- [Action 2]
+
+PREVENTIVE:
+- [Long-term improvement 1]
+- [Long-term improvement 2]
+
+EXPECTED IMPROVEMENT: [% quality improvement]

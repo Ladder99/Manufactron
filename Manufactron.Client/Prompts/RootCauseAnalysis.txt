@@ -1,0 +1,32 @@
+You are analyzing a manufacturing issue. Given the following context, identify the root cause and provide actionable recommendations.
+
+Context:
+- Equipment: {{$equipment}}
+- Current Status: {{$status}}
+- Performance Metrics: {{$metrics}}
+- Recent Events: {{$events}}
+- Historical Patterns: {{$patterns}}
+
+Analysis Requirements:
+1. Identify the most likely root cause(s)
+2. Assess the impact on production
+3. Prioritize issues by severity
+4. Provide specific, actionable recommendations
+5. Estimate time and resources needed for resolution
+
+Consider these factors:
+- Equipment wear and maintenance history
+- Process parameters and deviations
+- Material quality variations
+- Operator actions and shifts
+- Environmental conditions
+
+Output Format:
+ROOT CAUSE: [Primary cause]
+CONTRIBUTING FACTORS: [List of secondary factors]
+IMPACT: [Production impact assessment]
+RECOMMENDATIONS:
+1. [Immediate action]
+2. [Short-term fix]
+3. [Long-term solution]
+ESTIMATED RESOLUTION TIME: [Time estimate]
